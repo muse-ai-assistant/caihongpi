@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>彩虹屁 · 花式夸人生成器</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#ff7eb3">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  min-height:100vh;color:#5b2a41;
+  background:linear-gradient(160deg,#ffe3f1 0%,#ffd1e8 30%,#e3c9ff 70%,#cde4ff 100%);
+  display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;
+  overflow-x:hidden;
+}
+.float{position:fixed;font-size:1.4rem;opacity:.55;pointer-events:none;animation:drift linear infinite;z-index:0}
+@keyframes drift{from{transform:translateY(105vh) rotate(0)}to{transform:translateY(-10vh) rotate(360deg)}}
+.card{
+  position:relative;z-index:1;width:100%;max-width:520px;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.9);border-radius:24px;
+  box-shadow:0 12px 40px rgba(255,126,179,.25);
+  padding:28px 22px;text-align:center;
+}
+h1{font-size:1.9rem;letter-spacing:.15em;color:#d6336c;text-shadow:0 2px 12px rgba(214,51,108,.25)}
+.sub{color:#a06a86;font-size:.82rem;margin:6px 0 20px}
+label{display:block;text-align:left;font-size:.85rem;color:#8a4a68;margin:14px 0 6px;font-weight:600}
+input[type=text]{
+  width:100%;font-size:1.05rem;padding:12px 14px;border-radius:14px;
+  border:2px solid #ffc4dd;background:#fff;color:#5b2a41;outline:none;
+}
+input[type=text]:focus{border-color:#ff7eb3;box-shadow:0 0 0 4px rgba(255,126,179,.15)}
+.lvrow{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:#ff5c9e}
+#lvname{font-size:.85rem;color:#d6336c;font-weight:700;min-width:3em}
+.lvmarks{display:flex;justify-content:space-between;font-size:.72rem;color:#b98aa3;margin-top:2px}
+button{
+  border:none;cursor:pointer;font-family:inherit;
+}
+#go{
+  width:100%;margin-top:22px;padding:14px;font-size:1.25rem;font-weight:800;letter-spacing:.3em;text-indent:.3em;
+  color:#fff;border-radius:16px;
+  background:linear-gradient(135deg,#ff7eb3,#ff5c9e 60%,#c86bff);
+  box-shadow:0 8px 24px rgba(255,92,158,.4);
+  transition:transform .12s;
+}
+#go:active{transform:scale(.96)}
+#out{
+  margin-top:20px;min-height:150px;text-align:left;font-size:1.02rem;line-height:2;
+  background:rgba(255,255,255,.65);border-radius:16px;padding:18px;color:#6b3450;
+  border:1px dashed #ffb3d4;
+}
+#out:empty::before{content:"输入名字，点「开夸」，彩虹屁即刻发射 🌈";color:#c79ab2}
+.cursor{display:inline-block;width:2px;height:1.1em;background:#ff5c9e;vertical-align:-2px;animation:blink .8s infinite}
+@keyframes blink{50%{opacity:0}}
+.row{display:flex;gap:10px;margin-top:14px}
+.row button{
+  flex:1;padding:11px;font-size:.95rem;font-weight:700;border-radius:12px;
+  background:#fff;color:#d6336c;border:2px solid #ffc4dd;
+}
+.row button:active{background:#ffe3f1}
+#count{margin-top:12px;font-size:.75rem;color:#b98aa3}
+footer{margin-top:26px;font-size:.72rem;color:#b98aa3;z-index:1}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🌈 彩虹屁 🌈</h1>
+  <div class="sub">花式夸人生成器 · 夸到对方原地起飞</div>
+  <label>要夸的人</label>
+  <input type="text" id="name" placeholder="输入名字，比如：老板" maxlength="12">
+  <label>夸张度</label>
+  <div class="lvrow">
+    <input type="range" id="lv" min="1" max="3" step="1" value="2">
+    <span id="lvname">正常</span>
+  </div>
+  <div class="lvmarks"><span>含蓄</span><span>正常</span><span>上头</span></div>
+  <button id="go">开 夸</button>
+  <div id="out"></div>
+  <div class="row">
+    <button id="copy">📋 复制</button>
+    <button id="again">🔄 再来一段</button>
+  </div>
+  <div id="count"></div>
+</div>
+<footer>夸人一时爽 · 一直夸一直爽</footer>
+<script>
+// —— 金句库：{n} 为名字占位符 ——
+const T1=[ // 含蓄
+"{n}身上有一种让人安心的气质。",
+"跟{n}聊天，总能学到新东西。",
+"{n}做事认真靠谱，值得信赖。",
+"{n}的笑容很有感染力。",
+"认识{n}真是件幸运的事。",
+"{n}考虑问题总是很周全。",
+"{n}的审美一直在线。",
+"和{n}相处特别舒服。",
+"{n}说话有条理，听着就靠谱。",
+"{n}低调又优秀。",
+"{n}的时间观念特别强。",
+"{n}总能把事情安排得井井有条。",
+"和{n}共事效率翻倍。",
+"{n}是个值得深交的人。"
+];
+const T2=[ // 正常
+"{n}一出现，整个房间的亮度都提高了。",
+"{n}的才华藏都藏不住。",
+"老天爷追着给{n}喂饭吃。",
+"{n}简直是行走的教科书。",
+"认识{n}之后，我的快乐阈值都被拉高了。",
+"{n}的优秀是刻在骨子里的。",
+"{n}随便做点什么都像开了挂。",
+"{n}的气质，拿捏得死死的。",
+"跟{n}比，我的优秀只能算凑合。",
+"{n}的人生剧本一定是爽文。",
+"{n}往那一站，就是全场的焦点。",
+"{n}的情商高到需要仰望。",
+"{n}的运气和实力一样离谱。",
+"建议{n}出本书，书名就叫《优秀》。"
+];
+const T3=[ // 上头
+"听说{n}出生那天，太阳都害羞地躲进了云层。",
+"{n}的美貌是国家级机密，建议保密。",
+"银河系为{n}转了 46 亿年，值了。",
+"{n}打个哈欠，丘比特都得加班。",
+"建议把{n}的照片印在人民币上，提振经济。",
+"{n}一笑，冰川都融化了两座。",
+"盘古开天辟地，就是为了给{n}腾地方。",
+"{n}的优秀让字典里的“完美”都自愧不如。",
+"如果好看是一种罪，{n}已经被判无期徒刑。",
+"{n}的 DNA 里刻着“天选”两个字。",
+"女娲造人的时候，{n}一定是 VIP 定制款。",
+"{n}走过的地方，花都开得更艳了。",
+"时间在{n}脸上不敢留下痕迹。",
+"{n}的存在本身就是对平庸的降维打击。"
+];
+const LVNAME={1:"含蓄",2:"正常",3:"上头"};
+const $=id=>document.getElementById(id);
+let timer=null,total=0;
+
+$("lv").oninput=e=>{$("lvname").textContent=LVNAME[e.target.value]};
+
+function pick(arr,n){ // 不放回抽 n 个
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a.slice(0,n);
+}
+function build(name,lv){
+  const k=4+Math.floor(Math.random()*3); // 4-6 句
+  let out;
+  if(lv===1)out=pick(T1,k);
+  else if(lv===2)out=pick([...T1,...T2],k);
+  else{ // 上头：70% 概率从 T3 抽，其余从 T2 补，不放回
+    out=[];const a=[...T3],b=[...T2];
+    while(out.length<k&&(a.length||b.length)){
+      const src=(a.length&&(!b.length||Math.random()<0.7))?a:b;
+      out.push(src.splice(Math.floor(Math.random()*src.length),1)[0]);
+    }
+  }
+  return out.map(s=>s.replaceAll("{n}",name)).join("");
+}
+function typewriter(text){
+  clearInterval(timer);
+  const out=$("out");out.innerHTML="";
+  const cur=document.createElement("span");out.appendChild(cur);
+  const c=document.createElement("span");c.className="cursor";out.appendChild(c);
+  let i=0;
+  timer=setInterval(()=>{
+    cur.textContent=text.slice(0,++i);
+    if(i>=text.length){clearInterval(timer);c.remove()}
+  },45);
+}
+let lastText="";
+function go(){
+  const name=($("name").value||"").trim()||"你";
+  const lv=+$("lv").value;
+  lastText=build(name,lv);
+  total++;$("count").textContent=`已发射 ${total} 段彩虹屁 🌈`;
+  typewriter(lastText);
+  save();
+}
+$("go").onclick=go;
+$("again").onclick=go;
+$("copy").onclick=()=>{
+  if(!lastText)return;
+  navigator.clipboard.writeText(lastText).then(()=>{
+    const b=$("copy");b.textContent="已复制 ✓";setTimeout(()=>b.textContent="📋 复制",1200);
+  });
+};
+$("name").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+
+// 飘浮装饰
+const EMO=["🌈","💖","✨","💕","🌸","💫","🦄"];
+for(let i=0;i<14;i++){
+  const s=document.createElement("span");s.className="float";
+  s.textContent=EMO[Math.floor(Math.random()*EMO.length)];
+  s.style.left=Math.random()*100+"vw";
+  s.style.fontSize=(1+Math.random()*1.4)+"rem";
+  s.style.animationDuration=(9+Math.random()*12)+"s";
+  s.style.animationDelay=(-Math.random()*15)+"s";
+  document.body.appendChild(s);
+}
+
+// 计数持久化
+function save(){try{localStorage.setItem("caihongpi",JSON.stringify({total}))}catch(e){}}
+try{const d=JSON.parse(localStorage.getItem("caihongpi")||"{}");if(d.total){total=d.total;$("count").textContent=`已发射 ${total} 段彩虹屁 🌈`}}catch(e){}
+
+// Service Worker
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
